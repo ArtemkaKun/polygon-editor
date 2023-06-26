@@ -1,6 +1,6 @@
 module widgets
 
-import artemkakun.ui
+import ui
 
 const (
 	menubar_height           = 30

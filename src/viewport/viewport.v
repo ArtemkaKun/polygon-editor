@@ -1,8 +1,8 @@
 module viewport
 
 import gg
-import artemkakun.ui
-import artemkakun.ui.component { gg_canvaslayout }
+import ui
+import ui.component { gg_canvaslayout }
 
 const viewport_z_index = 1
 

@@ -1,6 +1,6 @@
 module app
 
-import artemkakun.ui
+import ui
 import viewport
 import widgets
 

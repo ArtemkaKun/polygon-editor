@@ -64,6 +64,11 @@ jobs:
       - name: Install project dependencies
         run: v install
 
+      - name: Install graphic libs dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --quiet -y libxi-dev libxcursor-dev libgl-dev
+
       - name: ${{ matrix.trimming }} build
         run: v ${{ matrix.trimming }} .
 
@@ -88,6 +93,11 @@ jobs:
 
       - name: Install project dependencies
         run: v install
+
+      - name: Install graphic libs dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --quiet -y libxi-dev libxcursor-dev libgl-dev
 
       - name: Run tests
         run: v test .
@@ -164,6 +174,11 @@ jobs:
       - name: Install project dependencies
         run: v install
 
+      - name: Install graphic libs dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --quiet -y libxi-dev libxcursor-dev libgl-dev
+
       - name: ${{ matrix.compiler }} ${{ matrix.trimming }} ${{ matrix.optimization }} build
         run: v -cc ${{ matrix.compiler }} ${{ matrix.trimming }} ${{ matrix.optimization }} .
 
@@ -205,6 +220,11 @@ jobs:
       - name: Install project dependencies
         run: v install
 
+      - name: Install graphic libs dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --quiet -y libxi-dev libxcursor-dev libgl-dev
+
       - name: Clang ${{ matrix.sanitizer }} sanitizer
         run: v -cc clang -cflags -fsanitize=${{ matrix.sanitizer }} test .
 
@@ -238,6 +258,11 @@ jobs:
       - name: Install project dependencies
         run: v install
 
+      - name: Install graphic libs dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --quiet -y libxi-dev libxcursor-dev libgl-dev
+
       - name: GCC ${{ matrix.sanitizer }} sanitizer
         run: v -cc gcc -cflags -fsanitize=${{ matrix.sanitizer }} test .
 
@@ -267,6 +292,11 @@ jobs:
 
       - name: Install project dependencies
         run: v install
+
+      - name: Install graphic libs dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --quiet -y libxi-dev libxcursor-dev libgl-dev
 
       - name: GCC address sanitizer
         run: v -cc gcc -cflags -fsanitize=address -cflags -fsanitize-address-use-after-scope -cflags -fsanitize=pointer-compare -cflags -fsanitize=pointer-subtract test .
@@ -298,6 +328,11 @@ jobs:
       - name: Install project dependencies
         run: v install
 
+      - name: Install graphic libs dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --quiet -y libxi-dev libxcursor-dev libgl-dev
+
       - name: GCC undefined sanitizer
         run: v -cc gcc -cflags -fsanitize=undefined -cflags -fsanitize=shift -cflags -fsanitize=shift-exponent -cflags -fsanitize=shift-base -cflags -fsanitize=integer-divide-by-zero -cflags -fsanitize=unreachable -cflags -fsanitize=vla-bound -cflags -fsanitize=null -cflags -fsanitize=return -cflags -fsanitize=signed-integer-overflow -cflags -fsanitize=bounds -cflags -fsanitize=bounds-strict -cflags -fsanitize=alignment -cflags -fsanitize=object-size -cflags -fsanitize=float-divide-by-zero -cflags -fsanitize=float-cast-overflow -cflags -fsanitize=nonnull-attribute -cflags -fsanitize=returns-nonnull-attribute -cflags -fsanitize=bool -cflags -fsanitize=enum -cflags -fsanitize=vptr -cflags -fsanitize=pointer-overflow -cflags -fsanitize=builtin test .
 
@@ -328,6 +363,11 @@ jobs:
       - name: Install project dependencies
         run: v install
 
+      - name: Install graphic libs dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --quiet -y libxi-dev libxcursor-dev libgl-dev
+
       - name: Build Windows executable
         run: v -os windows .
 
@@ -353,6 +393,11 @@ jobs:
       - name: Install project dependencies
         run: v install
 
+      - name: Install graphic libs dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --quiet -y libxi-dev libxcursor-dev libgl-dev
+
       - name: Check formatting
         run: v fmt -verify .
 
@@ -377,6 +422,11 @@ jobs:
 
       - name: Install project dependencies
         run: v install
+
+      - name: Install graphic libs dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --quiet -y libxi-dev libxcursor-dev libgl-dev
 
       - name: Check markdown line length & code examples
         run: v check-md -hide-warnings .
@@ -405,6 +455,11 @@ jobs:
 
       - name: Install project dependencies
         run: v install
+
+      - name: Install graphic libs dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --quiet -y libxi-dev libxcursor-dev libgl-dev
 
       - name: Check code with vet
         run: v vet -W .

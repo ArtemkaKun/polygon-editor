@@ -42,9 +42,6 @@ jobs:
   simple-build:
     needs: cache-V
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        trimming: [ null , -skip-unused ]
     steps:
       - name: Restore Vlang
         uses: actions/cache/restore@v3
@@ -69,8 +66,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install --quiet -y libxi-dev libxcursor-dev libgl-dev
 
-      - name: ${{ matrix.trimming }} build
-        run: v ${{ matrix.trimming }} .
+      - name: Build
+        run: v .
 
   tests:
     needs: simple-build
@@ -132,7 +129,6 @@ jobs:
     strategy:
       matrix:
         compiler: [ gcc, clang ]
-        trimming: [ null , -skip-unused ]
         optimization: [ null , -prod ]
     steps:
       - name: Restore Vlang
@@ -179,8 +175,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install --quiet -y libxi-dev libxcursor-dev libgl-dev
 
-      - name: ${{ matrix.compiler }} ${{ matrix.trimming }} ${{ matrix.optimization }} build
-        run: v -cc ${{ matrix.compiler }} ${{ matrix.trimming }} ${{ matrix.optimization }} .
+      - name: ${{ matrix.compiler }} ${{ matrix.optimization }} build
+        run: v -cc ${{ matrix.compiler }} ${{ matrix.optimization }} .
 
   clang-sanitizers:
     needs: different-compilers

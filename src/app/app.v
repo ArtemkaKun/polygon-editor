@@ -28,7 +28,7 @@ pub fn create_app() &ui.Window {
 
 fn setup_ui(mut ui_app App) {
 	mut ui_widgets := []ui.Widget{}
-	mut viewport_app := viewport.create_viewport_app(app.window_height)
+	mut viewport_app := viewport.create_viewport_app()
 
 	ui_widgets << widgets.get_menubar_related_widgets(viewport_app.open_work_sprite)
 	ui_widgets << viewport.create_viewport_widget(viewport_app)

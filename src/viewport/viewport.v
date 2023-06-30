@@ -3,17 +3,17 @@ module viewport
 import gg
 import ui
 import ui.component { gg_canvaslayout }
-import widgets
+import artemkakun.trnsfrm2d
 
 const viewport_z_index = 1
 
 // ViewportApp is a `gg` app that represents a viewport for sprite rendering and polygon shape editing.
 pub struct ViewportApp {
 mut:
-	gg                &gg.Context
-	bounds            gg.Rect
-	work_sprite       ?gg.Image
-	app_window_height int
+	gg             &gg.Context
+	bounds         gg.Rect
+	work_sprite    ?gg.Image
+	polygon_points []trnsfrm2d.Position
 }
 
 fn (mut app ViewportApp) on_init() {
@@ -21,32 +21,74 @@ fn (mut app ViewportApp) on_init() {
 }
 
 fn (mut app ViewportApp) on_draw() {
-	sprite_to_draw := app.work_sprite or { return }
+	app.gg.draw_rect(app.bounds.x, app.bounds.y, app.bounds.width, app.bounds.height,
+		gg.Color{
+		r: 211
+		g: 211
+		b: 211
+	})
 
-	scale := 20
-	sprite_width := sprite_to_draw.width * scale
-	sprite_height := sprite_to_draw.height * scale
+	if app.work_sprite != none {
+		sprite_to_draw := app.work_sprite or { return }
 
-	viewport_center_x := app.bounds.x + app.bounds.width / 2
-	viewport_center_y := app.bounds.y + app.bounds.height / 2
+		scale := 20
+		sprite_width := sprite_to_draw.width * scale
+		sprite_height := sprite_to_draw.height * scale
 
-	sprite_x := viewport_center_x - sprite_width / 2
-	sprite_y := viewport_center_y - sprite_height / 2
+		viewport_center_x := app.bounds.x + app.bounds.width / 2
+		viewport_center_y := app.bounds.y + app.bounds.height / 2
 
-	app.gg.draw_image_by_id(sprite_x, sprite_y, sprite_width, sprite_height, sprite_to_draw.id)
+		sprite_x := viewport_center_x - sprite_width / 2
+		sprite_y := viewport_center_y - sprite_height / 2
+
+		app.gg.draw_image_by_id(sprite_x, sprite_y, sprite_width, sprite_height, sprite_to_draw.id)
+	}
+
+	for point_index, point_position in app.polygon_points {
+		if point_index == app.polygon_points.len - 1 {
+			app.gg.draw_line_with_config(f32(point_position.x), f32(point_position.y),
+				f32(app.polygon_points[0].x), f32(app.polygon_points[0].y), gg.PenConfig{
+				color: gg.Color{
+					r: 0
+					g: 139
+					b: 139
+				}
+				thickness: 2
+			})
+		} else {
+			app.gg.draw_line_with_config(f32(point_position.x), f32(point_position.y),
+				f32(app.polygon_points[point_index + 1].x), f32(app.polygon_points[point_index + 1].y),
+				gg.PenConfig{
+				color: gg.Color{
+					r: 0
+					g: 139
+					b: 139
+				}
+				thickness: 2
+			})
+		}
+	}
+
+	for point_position in app.polygon_points {
+		app.gg.draw_circle_filled(f32(point_position.x), f32(point_position.y), 5, gg.Color{
+			r: 0
+			g: 255
+			b: 255
+		})
+	}
 }
 
-fn (mut _ ViewportApp) on_delegate(_ &gg.Event) {}
+fn (mut app ViewportApp) on_delegate(event &gg.Event) {
+	if event.typ == .mouse_down {
+		app.polygon_points << trnsfrm2d.Position{
+			x: event.mouse_x
+			y: event.mouse_y
+		}
+	}
+}
 
 fn (mut app ViewportApp) set_bounds(bb gg.Rect) {
-	// HACK: since menubar submenus have a bug, we are using separate menu. This menu element influence viewport bounds for some reason,
-	// but not influence it real position and size. This is probably another bug.
-	// To overcome this problem, we a calculating size manually, this is simple since UI layout - this is just a menubar and viewport.
-	// This hack probably provides problem for resizable window.
-	app.bounds = gg.Rect{
-		...bb
-		height: app.app_window_height - widgets.menubar_height
-	}
+	app.bounds = bb
 }
 
 fn (mut app ViewportApp) run() {
@@ -62,10 +104,9 @@ pub fn create_viewport_widget(viewport_app &ViewportApp) &ui.CanvasLayout {
 }
 
 // create_viewport_app creates a new `ViewportApp` instance and returns a reference to it.
-pub fn create_viewport_app(app_window_height int) &ViewportApp {
+pub fn create_viewport_app() &ViewportApp {
 	mut viewport_app := &ViewportApp{
 		gg: unsafe { nil }
-		app_window_height: app_window_height
 	}
 
 	viewport_app.gg = gg.new_context(

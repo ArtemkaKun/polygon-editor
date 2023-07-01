@@ -38,11 +38,10 @@ fn setup_ui() &ui.Window {
 }
 
 fn create_widgets() []ui.Widget {
-	mut ui_widgets := []ui.Widget{}
 	viewport_app := viewport.create_viewport_app()
 
-	ui_widgets << widgets.get_menubar_related_widgets(viewport_app.open_work_sprite)
-	ui_widgets << viewport.create_viewport_widget(viewport_app)
-
-	return ui_widgets
+	return [
+		widgets.create_menubar_widget(viewport_app.open_work_sprite),
+		viewport.create_viewport_widget(viewport_app),
+	]
 }

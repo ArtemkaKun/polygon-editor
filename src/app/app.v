@@ -17,30 +17,31 @@ mut:
 
 // create_app creates a new UI app and returns its windows.
 pub fn create_app() &ui.Window {
-	mut ui_app := App{
-		window: unsafe { nil }
+	ui_app := App{
+		window: setup_ui()
 	}
-
-	setup_ui(mut ui_app)
 
 	return ui_app.window
 }
 
-fn setup_ui(mut ui_app App) {
-	mut ui_widgets := []ui.Widget{}
-	mut viewport_app := viewport.create_viewport_app(app.window_height)
-
-	ui_widgets << widgets.get_menubar_related_widgets(viewport_app.open_work_sprite)
-	ui_widgets << viewport.create_viewport_widget(viewport_app)
-
-	ui_app.window = ui.window(
+fn setup_ui() &ui.Window {
+	return ui.window(
 		width: app.window_width
 		height: app.window_height
 		title: app.window_title
 		children: [
 			ui.column(
-				children: ui_widgets
+				children: create_widgets()
 			),
 		]
 	)
+}
+
+fn create_widgets() []ui.Widget {
+	viewport_app := viewport.create_viewport_app()
+
+	return [
+		widgets.create_menubar_widget(viewport_app.open_work_sprite),
+		viewport.create_viewport_widget(viewport_app),
+	]
 }

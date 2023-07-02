@@ -54,7 +54,7 @@ fn (mut app ViewportApp) on_draw() {
 }
 
 fn draw_viewport_background(mut app ViewportApp) {
-	app.gg.draw_rect(app.bounds.x, app.bounds.y, app.bounds.width, app.bounds.height,
+	app.gg.draw_rect_filled(app.bounds.x, app.bounds.y, app.bounds.width, app.bounds.height,
 		viewport.background_color)
 }
 

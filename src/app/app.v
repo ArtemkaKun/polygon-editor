@@ -41,7 +41,7 @@ fn create_widgets() []ui.Widget {
 	viewport_app := viewport.create_viewport_app()
 
 	return [
-		widgets.create_menubar_widget(viewport_app.open_work_sprite),
+		widgets.create_menubar_widget(viewport_app.open_work_sprite, viewport_app.set_polygon_file_path),
 		viewport.create_viewport_widget(viewport_app),
 	]
 }

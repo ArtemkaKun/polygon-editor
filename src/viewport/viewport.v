@@ -35,10 +35,11 @@ const (
 // ViewportApp is a `gg` app that represents a viewport for sprite rendering and polygon shape editing.
 pub struct ViewportApp {
 mut:
-	gg             &gg.Context
-	bounds         gg.Rect
-	work_sprite    ?gg.Image
-	polygon_points []trnsfrm2d.Position
+	gg                &gg.Context
+	bounds            gg.Rect
+	work_sprite       ?gg.Image
+	polygon_points    []trnsfrm2d.Position
+	polygon_file_path ?string
 }
 
 fn (mut app ViewportApp) on_init() {
@@ -97,6 +98,10 @@ fn draw_polygon_points(mut app ViewportApp) {
 }
 
 fn (mut app ViewportApp) on_delegate(event &gg.Event) {
+	if app.polygon_file_path == none {
+		return
+	}
+
 	if event.typ == .mouse_down {
 		app.polygon_points << trnsfrm2d.Position{
 			x: event.mouse_x
@@ -138,4 +143,9 @@ pub fn create_viewport_app() &ViewportApp {
 // open_work_sprite opens a sprite from the provided path for editing in the viewport.
 pub fn (mut app ViewportApp) open_work_sprite(path_to_sprite string) ! {
 	app.work_sprite = app.gg.create_image(path_to_sprite)!
+}
+
+// set_polygon_file_path sets the path to the polygon file that will be used for editing in the viewport.
+pub fn (mut app ViewportApp) set_polygon_file_path(path_to_polygon string) {
+	app.polygon_file_path = path_to_polygon
 }

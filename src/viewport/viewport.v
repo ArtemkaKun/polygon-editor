@@ -32,6 +32,11 @@ const (
 	polygon_point_radius = 5
 )
 
+const mouse_button_to_action_function_map = {
+	gg.MouseButton.left:  handle_mouse_left_click
+	gg.MouseButton.right: remove_point
+}
+
 // ViewportApp is a `gg` app that represents a viewport for sprite rendering and polygon shape editing.
 pub struct ViewportApp {
 mut:
@@ -40,6 +45,7 @@ mut:
 	work_sprite       ?gg.Image
 	polygon_points    []trnsfrm2d.Position
 	polygon_file_path ?string
+	selected_point_id ?int
 }
 
 fn (mut app ViewportApp) on_init() {
@@ -103,9 +109,62 @@ fn (mut app ViewportApp) on_delegate(event &gg.Event) {
 	}
 
 	if event.typ == .mouse_down {
-		app.polygon_points << trnsfrm2d.Position{
-			x: event.mouse_x
-			y: event.mouse_y
+		mouse_button_to_action_function_map[event.mouse_button](mut app, event)
+	} else if event.typ == .mouse_up {
+		if event.mouse_button == .left {
+			app.selected_point_id = none
+		}
+	} else if event.typ == .mouse_move {
+		if app.selected_point_id != none {
+			point_to_move_id := app.selected_point_id or { return }
+
+			app.polygon_points[point_to_move_id] = trnsfrm2d.Position{
+				x: event.mouse_x
+				y: event.mouse_y
+			}
+		}
+	}
+}
+
+fn handle_mouse_left_click(mut app ViewportApp, event &gg.Event) {
+	new_point_position := trnsfrm2d.Position{
+		x: event.mouse_x
+		y: event.mouse_y
+	}
+
+	selected_point := app.polygon_points.filter(trnsfrm2d.calculate_distance_between_vectors(it.Vector,
+		new_point_position.Vector) <= viewport.polygon_point_radius)
+
+	if selected_point.len == 1 {
+		app.selected_point_id = app.polygon_points.index(selected_point[0])
+	} else {
+		add_point(mut app, event)
+	}
+}
+
+fn add_point(mut app ViewportApp, event &gg.Event) {
+	new_point_position := trnsfrm2d.Position{
+		x: event.mouse_x
+		y: event.mouse_y
+	}
+
+	if app.polygon_points.any(trnsfrm2d.calculate_distance_between_vectors(it.Vector,
+		new_point_position.Vector) <= viewport.polygon_point_radius * 2)
+	{
+		return
+	}
+
+	app.polygon_points << new_point_position
+}
+
+fn remove_point(mut app ViewportApp, event &gg.Event) {
+	for point_index, point_position in app.polygon_points {
+		distance_between_mouse_and_point := trnsfrm2d.calculate_distance_between_vectors(point_position.Vector,
+			trnsfrm2d.Vector{event.mouse_x, event.mouse_y})
+
+		if distance_between_mouse_and_point <= viewport.polygon_point_radius {
+			app.polygon_points.delete(point_index)
+			break
 		}
 	}
 }

@@ -7,36 +7,6 @@ import artemkakun.trnsfrm2d
 
 const viewport_z_index = 1
 
-const (
-	background_color = gg.Color{
-		r: 211
-		g: 211
-		b: 211
-	}
-
-	connection_draw_parameters = gg.PenConfig{
-		color: gg.Color{
-			r: 0
-			g: 139
-			b: 139
-		}
-		thickness: 2
-	}
-
-	polygon_point_color = gg.Color{
-		r: 0
-		g: 255
-		b: 255
-	}
-
-	polygon_point_radius = 5
-)
-
-const mouse_button_to_action_function_map = {
-	gg.MouseButton.left:  handle_mouse_left_click
-	gg.MouseButton.right: remove_point
-}
-
 // ViewportApp is a `gg` app that represents a viewport for sprite rendering and polygon shape editing.
 pub struct ViewportApp {
 mut:
@@ -53,54 +23,7 @@ fn (mut app ViewportApp) on_init() {
 }
 
 fn (mut app ViewportApp) on_draw() {
-	// NOTE: order matters! Last drawn element will be on top of all others.
-	draw_viewport_background(mut app)
-	draw_work_sprite(mut app)
-	draw_polygon_connections(mut app)
-	draw_polygon_points(mut app)
-}
-
-fn draw_viewport_background(mut app ViewportApp) {
-	app.gg.draw_rect_filled(app.bounds.x, app.bounds.y, app.bounds.width, app.bounds.height,
-		viewport.background_color)
-}
-
-fn draw_work_sprite(mut app ViewportApp) {
-	sprite_to_draw := app.work_sprite or { return }
-
-	scale := 20
-	sprite_width := sprite_to_draw.width * scale
-	sprite_height := sprite_to_draw.height * scale
-
-	viewport_center_x := app.bounds.x + app.bounds.width / 2
-	viewport_center_y := app.bounds.y + app.bounds.height / 2
-
-	sprite_x := viewport_center_x - sprite_width / 2
-	sprite_y := viewport_center_y - sprite_height / 2
-
-	app.gg.draw_image_by_id(sprite_x, sprite_y, sprite_width, sprite_height, sprite_to_draw.id)
-}
-
-fn draw_polygon_connections(mut app ViewportApp) {
-	for point_index, point_position in app.polygon_points {
-		next_point_index := if point_index == app.polygon_points.len - 1 {
-			0
-		} else {
-			point_index + 1
-		}
-
-		next_point_position := app.polygon_points[next_point_index]
-
-		app.gg.draw_line_with_config(f32(point_position.x), f32(point_position.y), f32(next_point_position.x),
-			f32(next_point_position.y), viewport.connection_draw_parameters)
-	}
-}
-
-fn draw_polygon_points(mut app ViewportApp) {
-	for point_position in app.polygon_points {
-		app.gg.draw_circle_filled(f32(point_position.x), f32(point_position.y), viewport.polygon_point_radius,
-			viewport.polygon_point_color)
-	}
+	render_viewport(mut app)
 }
 
 fn (mut app ViewportApp) on_delegate(event &gg.Event) {
@@ -108,65 +31,7 @@ fn (mut app ViewportApp) on_delegate(event &gg.Event) {
 		return
 	}
 
-	if event.typ == .mouse_down {
-		mouse_button_to_action_function_map[event.mouse_button](mut app, event)
-	} else if event.typ == .mouse_up {
-		if event.mouse_button == .left {
-			app.selected_point_id = none
-		}
-	} else if event.typ == .mouse_move {
-		if app.selected_point_id != none {
-			point_to_move_id := app.selected_point_id or { return }
-
-			app.polygon_points[point_to_move_id] = trnsfrm2d.Position{
-				x: event.mouse_x
-				y: event.mouse_y
-			}
-		}
-	}
-}
-
-fn handle_mouse_left_click(mut app ViewportApp, event &gg.Event) {
-	new_point_position := trnsfrm2d.Position{
-		x: event.mouse_x
-		y: event.mouse_y
-	}
-
-	selected_point := app.polygon_points.filter(trnsfrm2d.calculate_distance_between_vectors(it.Vector,
-		new_point_position.Vector) <= viewport.polygon_point_radius)
-
-	if selected_point.len == 1 {
-		app.selected_point_id = app.polygon_points.index(selected_point[0])
-	} else {
-		add_point(mut app, event)
-	}
-}
-
-fn add_point(mut app ViewportApp, event &gg.Event) {
-	new_point_position := trnsfrm2d.Position{
-		x: event.mouse_x
-		y: event.mouse_y
-	}
-
-	if app.polygon_points.any(trnsfrm2d.calculate_distance_between_vectors(it.Vector,
-		new_point_position.Vector) <= viewport.polygon_point_radius * 2)
-	{
-		return
-	}
-
-	app.polygon_points << new_point_position
-}
-
-fn remove_point(mut app ViewportApp, event &gg.Event) {
-	for point_index, point_position in app.polygon_points {
-		distance_between_mouse_and_point := trnsfrm2d.calculate_distance_between_vectors(point_position.Vector,
-			trnsfrm2d.Vector{event.mouse_x, event.mouse_y})
-
-		if distance_between_mouse_and_point <= viewport.polygon_point_radius {
-			app.polygon_points.delete(point_index)
-			break
-		}
-	}
+	handle_user_input(mut app, event)
 }
 
 fn (mut app ViewportApp) set_bounds(bb gg.Rect) {

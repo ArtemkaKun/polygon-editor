@@ -9,29 +9,21 @@ const (
 	menubar_file_button_text = 'File...'
 )
 
-const file_menu_buttons_text = [
-	'Open sprite file',
-	'Open polygon file',
-	'Create new polygon',
-	'Save polygon',
-	'Save polygon as...',
-]
-
 // create_menubar_widget returns menubar widget.
-pub fn create_menubar_widget(load_sprite_to_viewport_function fn (string) !) ui.Widget {
+pub fn create_menubar_widget(load_sprite_to_viewport_function fn (string) !, set_polygon_file_function fn (string)) ui.Widget {
 	return ui.menubar(
 		height: widgets.menubar_height
 		z_index: widgets.menubar_z_index
 		items: [
 			ui.menuitem(
 				text: widgets.menubar_file_button_text
-				submenu: create_file_menu(load_sprite_to_viewport_function)
+				submenu: create_file_menu(load_sprite_to_viewport_function, set_polygon_file_function)
 			),
 		]
 	)
 }
 
-fn create_file_menu(load_sprite_to_viewport_function fn (string) !) &ui.Menu {
+fn create_file_menu(load_sprite_to_viewport_function fn (string) !, set_polygon_file_function fn (string)) &ui.Menu {
 	open_sprite_file_function := fn [load_sprite_to_viewport_function] (_ &ui.MenuItem) {
 		sprite_path := open_sprite_file_dialog_with_kdialog()
 
@@ -40,7 +32,18 @@ fn create_file_menu(load_sprite_to_viewport_function fn (string) !) &ui.Menu {
 		}
 	}
 
-	file_menu_button_text_to_action_function_map := create_file_menu_button_text_to_action_function_map(open_sprite_file_function)
+	create_polygon_file_function := fn [set_polygon_file_function] (_ &ui.MenuItem) {
+		polygon_path := open_polygon_file_save_dialog_with_kdialog() or {
+			eprintln('Error while selecting save path for new polygon file - ${err}')
+			return
+		}
+
+		set_polygon_file_function(polygon_path)
+	}
+
+	file_menu_button_text_to_action_function_map := create_file_menu_button_text_to_action_function_map(open_sprite_file_function,
+		create_polygon_file_function)
+
 	file_menu_buttons := create_file_menu_buttons(file_menu_button_text_to_action_function_map)
 
 	return ui.menu(
@@ -55,14 +58,29 @@ fn open_sprite_file_dialog_with_kdialog() string {
 	return file_path_selection_result.output.trim_indent()
 }
 
-fn create_file_menu_button_text_to_action_function_map(open_sprite_file_function fn (&ui.MenuItem)) map[string]fn (&ui.MenuItem) {
+fn open_polygon_file_save_dialog_with_kdialog() !string {
+	file_path_selection_result := os.execute("kdialog --getsavefilename . '*.json'")
+	mut save_path := file_path_selection_result.output.trim_indent()
+
+	if save_path == '' {
+		return error('Empty save path')
+	}
+
+	if save_path.ends_with('.json') == false {
+		save_path += '.json'
+	}
+
+	return save_path
+}
+
+fn create_file_menu_button_text_to_action_function_map(open_sprite_file_function fn (&ui.MenuItem), create_polygon_file_function fn (&ui.MenuItem)) map[string]fn (&ui.MenuItem) {
 	unsafe {
 		return {
-			widgets.file_menu_buttons_text[0]: open_sprite_file_function
-			widgets.file_menu_buttons_text[1]: nil
-			widgets.file_menu_buttons_text[2]: nil
-			widgets.file_menu_buttons_text[3]: nil
-			widgets.file_menu_buttons_text[4]: nil
+			'Open sprite file':   open_sprite_file_function
+			'Open polygon file':  nil
+			'Create new polygon': create_polygon_file_function
+			'Save polygon':       nil
+			'Save polygon as...': nil
 		}
 	}
 }

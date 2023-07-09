@@ -7,6 +7,7 @@ import artemkakun.trnsfrm2d
 import os
 import x.json2
 import artemkakun.pcoll2d
+import json
 
 const viewport_z_index = 1
 
@@ -72,6 +73,25 @@ pub fn (mut app ViewportApp) open_work_sprite(path_to_sprite string) ! {
 	app.work_sprite = app.gg.create_image(path_to_sprite)!
 }
 
+// open_polygon opens a polygon shape from the provided path for editing in the viewport.
+pub fn (mut app ViewportApp) open_polygon(path_to_polygon string) ! {
+	polygon_data := os.read_file(path_to_polygon)!
+	polygon := json.decode(pcoll2d.Polygon, polygon_data)!
+	position := get_work_sprite_position(app)!
+
+	mut global_polygon_points := []trnsfrm2d.Position{}
+
+	for point in polygon.points {
+		global_polygon_points << trnsfrm2d.Position{
+			x: point.x * work_sprite_scale + position.x
+			y: point.y * work_sprite_scale + position.y
+		}
+	}
+
+	app.polygon_points = global_polygon_points
+	app.set_polygon_file_path(path_to_polygon)
+}
+
 // set_polygon_file_path sets the path to the polygon file that will be used for editing in the viewport.
 pub fn (mut app ViewportApp) set_polygon_file_path(path_to_polygon string) {
 	app.polygon_file_path = path_to_polygon
@@ -88,12 +108,7 @@ pub fn (app &ViewportApp) save_polygon() {
 }
 
 fn create_polygon_data_in_json_form(app ViewportApp) !string {
-	sprite_to_draw := app.work_sprite or {
-		return error("No work sprite, polygon points can't be calculated!")
-	}
-
-	position, _ := calculate_work_sprite_transforms(sprite_to_draw, app.bounds)
-
+	position := get_work_sprite_position(app)!
 	mut local_polygon_points := []trnsfrm2d.Position{}
 
 	for global_polygon_point in app.polygon_points {
@@ -105,4 +120,12 @@ fn create_polygon_data_in_json_form(app ViewportApp) !string {
 
 	polygon := pcoll2d.Polygon{local_polygon_points}
 	return json2.encode[pcoll2d.Polygon](polygon)
+}
+
+fn get_work_sprite_position(app ViewportApp) !trnsfrm2d.Position {
+	sprite_to_draw := app.work_sprite or { return error('No work sprite!') }
+
+	position, _ := calculate_work_sprite_transforms(sprite_to_draw, app.bounds)
+
+	return position
 }

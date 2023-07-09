@@ -1,6 +1,7 @@
 module viewport
 
 import gg
+import artemkakun.trnsfrm2d
 
 const (
 	background_color = gg.Color{
@@ -25,6 +26,7 @@ const (
 	}
 
 	polygon_point_radius = 5
+	work_sprite_scale    = 20
 )
 
 fn render_viewport(mut app ViewportApp) {
@@ -43,17 +45,29 @@ fn draw_viewport_background(mut app ViewportApp) {
 fn draw_work_sprite(mut app ViewportApp) {
 	sprite_to_draw := app.work_sprite or { return }
 
-	scale := 20
-	sprite_width := sprite_to_draw.width * scale
-	sprite_height := sprite_to_draw.height * scale
+	position, size := calculate_work_sprite_transforms(sprite_to_draw, app.bounds)
 
-	viewport_center_x := app.bounds.x + app.bounds.width / 2
-	viewport_center_y := app.bounds.y + app.bounds.height / 2
+	app.gg.draw_image_by_id(f32(position.x), f32(position.y), f32(size.x), f32(size.y),
+		sprite_to_draw.id)
+}
+
+fn calculate_work_sprite_transforms(work_sprite gg.Image, bounds gg.Rect) (trnsfrm2d.Position, trnsfrm2d.Vector) {
+	sprite_width := work_sprite.width * viewport.work_sprite_scale
+	sprite_height := work_sprite.height * viewport.work_sprite_scale
+
+	viewport_center_x := bounds.x + bounds.width / 2
+	viewport_center_y := bounds.y + bounds.height / 2
 
 	sprite_x := viewport_center_x - sprite_width / 2
 	sprite_y := viewport_center_y - sprite_height / 2
 
-	app.gg.draw_image_by_id(sprite_x, sprite_y, sprite_width, sprite_height, sprite_to_draw.id)
+	return trnsfrm2d.Position{
+		x: sprite_x
+		y: sprite_y
+	}, trnsfrm2d.Vector{
+		x: sprite_width
+		y: sprite_height
+	}
 }
 
 fn draw_polygon_connections(mut app ViewportApp) {

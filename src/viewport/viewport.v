@@ -4,6 +4,9 @@ import gg
 import ui
 import ui.component { gg_canvaslayout }
 import artemkakun.trnsfrm2d
+import os
+import x.json2
+import artemkakun.pcoll2d
 
 const viewport_z_index = 1
 
@@ -27,7 +30,7 @@ fn (mut app ViewportApp) on_draw() {
 }
 
 fn (mut app ViewportApp) on_delegate(event &gg.Event) {
-	if app.polygon_file_path == none {
+	if app.polygon_file_path == none || app.work_sprite == none {
 		return
 	}
 
@@ -72,4 +75,34 @@ pub fn (mut app ViewportApp) open_work_sprite(path_to_sprite string) ! {
 // set_polygon_file_path sets the path to the polygon file that will be used for editing in the viewport.
 pub fn (mut app ViewportApp) set_polygon_file_path(path_to_polygon string) {
 	app.polygon_file_path = path_to_polygon
+}
+
+// save_polygon saves the polygon shape to the file that was set with `set_polygon_file_path`.
+pub fn (app &ViewportApp) save_polygon() {
+	polygon_save_path := app.polygon_file_path or { return }
+	polygon_in_json_form := create_polygon_data_in_json_form(app) or { return }
+
+	os.write_file(polygon_save_path, polygon_in_json_form) or {
+		println('Failed to save polygon to file ${polygon_save_path}: ${err}')
+	}
+}
+
+fn create_polygon_data_in_json_form(app ViewportApp) !string {
+	sprite_to_draw := app.work_sprite or {
+		return error("No work sprite, polygon points can't be calculated!")
+	}
+
+	position, _ := calculate_work_sprite_transforms(sprite_to_draw, app.bounds)
+
+	mut local_polygon_points := []trnsfrm2d.Position{}
+
+	for global_polygon_point in app.polygon_points {
+		local_polygon_points << trnsfrm2d.Position{
+			x: (global_polygon_point.x - position.x) / work_sprite_scale
+			y: (global_polygon_point.y - position.y) / work_sprite_scale
+		}
+	}
+
+	polygon := pcoll2d.Polygon{local_polygon_points}
+	return json2.encode[pcoll2d.Polygon](polygon)
 }

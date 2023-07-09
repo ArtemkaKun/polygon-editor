@@ -2,6 +2,7 @@ module widgets
 
 import ui
 import os
+import artemkakun.pcoll2d
 
 const (
 	menubar_height           = 30
@@ -10,20 +11,21 @@ const (
 )
 
 // create_menubar_widget returns menubar widget.
-pub fn create_menubar_widget(load_sprite_to_viewport_function fn (string) !, set_polygon_file_function fn (string)) ui.Widget {
+pub fn create_menubar_widget(load_sprite_to_viewport_function fn (string) !, set_polygon_file_function fn (string), save_polygon fn ()) ui.Widget {
 	return ui.menubar(
 		height: widgets.menubar_height
 		z_index: widgets.menubar_z_index
 		items: [
 			ui.menuitem(
 				text: widgets.menubar_file_button_text
-				submenu: create_file_menu(load_sprite_to_viewport_function, set_polygon_file_function)
+				submenu: create_file_menu(load_sprite_to_viewport_function, set_polygon_file_function,
+					save_polygon)
 			),
 		]
 	)
 }
 
-fn create_file_menu(load_sprite_to_viewport_function fn (string) !, set_polygon_file_function fn (string)) &ui.Menu {
+fn create_file_menu(load_sprite_to_viewport_function fn (string) !, set_polygon_file_function fn (string), save_polygon fn ()) &ui.Menu {
 	open_sprite_file_function := fn [load_sprite_to_viewport_function] (_ &ui.MenuItem) {
 		sprite_path := open_sprite_file_dialog_with_kdialog()
 
@@ -41,8 +43,12 @@ fn create_file_menu(load_sprite_to_viewport_function fn (string) !, set_polygon_
 		set_polygon_file_function(polygon_path)
 	}
 
+	save_polygon_function := fn [save_polygon] (_ &ui.MenuItem) {
+		save_polygon()
+	}
+
 	file_menu_button_text_to_action_function_map := create_file_menu_button_text_to_action_function_map(open_sprite_file_function,
-		create_polygon_file_function)
+		create_polygon_file_function, save_polygon_function)
 
 	file_menu_buttons := create_file_menu_buttons(file_menu_button_text_to_action_function_map)
 
@@ -59,27 +65,28 @@ fn open_sprite_file_dialog_with_kdialog() string {
 }
 
 fn open_polygon_file_save_dialog_with_kdialog() !string {
-	file_path_selection_result := os.execute("kdialog --getsavefilename . '*.json'")
+	polygon_file_extension := pcoll2d.polygon_file_extension
+	file_path_selection_result := os.execute("kdialog --getsavefilename . '*${polygon_file_extension}'")
 	mut save_path := file_path_selection_result.output.trim_indent()
 
 	if save_path == '' {
 		return error('Empty save path')
 	}
 
-	if save_path.ends_with('.json') == false {
-		save_path += '.json'
+	if save_path.ends_with(polygon_file_extension) == false {
+		save_path += polygon_file_extension
 	}
 
 	return save_path
 }
 
-fn create_file_menu_button_text_to_action_function_map(open_sprite_file_function fn (&ui.MenuItem), create_polygon_file_function fn (&ui.MenuItem)) map[string]fn (&ui.MenuItem) {
+fn create_file_menu_button_text_to_action_function_map(open_sprite_file_function fn (&ui.MenuItem), create_polygon_file_function fn (&ui.MenuItem), save_polygon_function fn (&ui.MenuItem)) map[string]fn (&ui.MenuItem) {
 	unsafe {
 		return {
 			'Open sprite file':   open_sprite_file_function
 			'Open polygon file':  nil
 			'Create new polygon': create_polygon_file_function
-			'Save polygon':       nil
+			'Save polygon':       save_polygon_function
 			'Save polygon as...': nil
 		}
 	}

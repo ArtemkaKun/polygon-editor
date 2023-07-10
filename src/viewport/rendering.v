@@ -25,6 +25,12 @@ const (
 		b: 255
 	}
 
+	moving_polygon_point_color = gg.Color{
+		r: 255
+		g: 0
+		b: 255
+	}
+
 	polygon_point_radius = 5
 	work_sprite_scale    = 20
 )
@@ -86,8 +92,16 @@ fn draw_polygon_connections(mut app ViewportApp) {
 }
 
 fn draw_polygon_points(mut app ViewportApp) {
-	for point_position in app.polygon_points {
+	for point_index, point_position in app.polygon_points {
+		selected_point_id := app.selected_point_id or { -1 }
+
+		point_color := if point_index == selected_point_id {
+			viewport.moving_polygon_point_color
+		} else {
+			viewport.polygon_point_color
+		}
+
 		app.gg.draw_circle_filled(f32(point_position.x), f32(point_position.y), viewport.polygon_point_radius,
-			viewport.polygon_point_color)
+			point_color)
 	}
 }

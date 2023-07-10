@@ -92,8 +92,14 @@ pub fn (mut app ViewportApp) open_polygon(path_to_polygon string) ! {
 	app.set_polygon_file_path(path_to_polygon)
 }
 
+// create_polygon_file deletes existing polygon points and sets the path to the polygon file that will be used for editing in the viewport.
+pub fn (mut app ViewportApp) create_polygon_file(path_to_polygon string) {
+	app.polygon_points = []
+	app.set_polygon_file_path(path_to_polygon)
+}
+
 // set_polygon_file_path sets the path to the polygon file that will be used for editing in the viewport.
-pub fn (mut app ViewportApp) set_polygon_file_path(path_to_polygon string) {
+fn (mut app ViewportApp) set_polygon_file_path(path_to_polygon string) {
 	app.polygon_file_path = path_to_polygon
 }
 

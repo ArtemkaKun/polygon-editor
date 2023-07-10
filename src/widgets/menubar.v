@@ -11,7 +11,7 @@ const (
 )
 
 // create_menubar_widget returns menubar widget.
-pub fn create_menubar_widget(load_sprite_to_viewport_function fn (string) !, open_polygon_file fn (string) !, set_polygon_file_function fn (string), save_polygon fn ()) ui.Widget {
+pub fn create_menubar_widget(load_sprite_to_viewport_function fn (string) !, open_polygon_file fn (string) !, create_polygon_file fn (string), save_polygon fn (), set_status_text fn (string)) ui.Widget {
 	return ui.menubar(
 		height: widgets.menubar_height
 		z_index: widgets.menubar_z_index
@@ -19,40 +19,48 @@ pub fn create_menubar_widget(load_sprite_to_viewport_function fn (string) !, ope
 			ui.menuitem(
 				text: widgets.menubar_file_button_text
 				submenu: create_file_menu(load_sprite_to_viewport_function, open_polygon_file,
-					set_polygon_file_function, save_polygon)
+					create_polygon_file, save_polygon, set_status_text)
 			),
 		]
 	)
 }
 
-fn create_file_menu(load_sprite_to_viewport_function fn (string) !, open_polygon_file fn (string) !, set_polygon_file_function fn (string), save_polygon fn ()) &ui.Menu {
-	open_sprite_file_function := fn [load_sprite_to_viewport_function] (_ &ui.MenuItem) {
+fn create_file_menu(load_sprite_to_viewport_function fn (string) !, open_polygon_file fn (string) !, create_polygon_file fn (string), save_polygon fn (), set_status_text fn (string)) &ui.Menu {
+	open_sprite_file_function := fn [load_sprite_to_viewport_function, set_status_text] (_ &ui.MenuItem) {
 		sprite_path := open_file_dialog_with_kdialog('.png')
 
 		load_sprite_to_viewport_function(sprite_path) or {
 			eprintln('Failed to load sprite file from path ${sprite_path}: ${err}')
 		}
+
+		set_status_text('Sprite file ${sprite_path.all_after_last('/')} loaded')
 	}
 
-	open_polygon_file_function := fn [open_polygon_file] (_ &ui.MenuItem) {
-		polygon_path := open_file_dialog_with_kdialog('.json')
+	open_polygon_file_function := fn [open_polygon_file, set_status_text] (_ &ui.MenuItem) {
+		polygon_path := open_file_dialog_with_kdialog(pcoll2d.polygon_file_extension)
 
 		open_polygon_file(polygon_path) or {
 			eprintln('Failed to load polygon file from path ${polygon_path}: ${err}')
 		}
+
+		set_status_text('Polygon file ${polygon_path.all_after_last('/')} loaded')
 	}
 
-	create_polygon_file_function := fn [set_polygon_file_function] (_ &ui.MenuItem) {
+	create_polygon_file_function := fn [create_polygon_file, set_status_text] (_ &ui.MenuItem) {
 		polygon_path := open_polygon_file_save_dialog_with_kdialog() or {
 			eprintln('Error while selecting save path for new polygon file - ${err}')
 			return
 		}
 
-		set_polygon_file_function(polygon_path)
+		create_polygon_file(polygon_path)
+
+		set_status_text('Polygon file ${polygon_path.all_after_last('/')} created')
 	}
 
-	save_polygon_function := fn [save_polygon] (_ &ui.MenuItem) {
+	save_polygon_function := fn [save_polygon, set_status_text] (_ &ui.MenuItem) {
 		save_polygon()
+
+		set_status_text('Polygon file saved')
 	}
 
 	file_menu_button_text_to_action_function_map := create_file_menu_button_text_to_action_function_map(open_sprite_file_function,

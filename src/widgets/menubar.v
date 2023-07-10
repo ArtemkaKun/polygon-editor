@@ -103,7 +103,6 @@ fn create_file_menu_button_text_to_action_function_map(open_sprite_file_function
 			'Open polygon file':  open_polygon_file_function
 			'Create new polygon': create_polygon_file_function
 			'Save polygon':       save_polygon_function
-			'Save polygon as...': nil
 		}
 	}
 }

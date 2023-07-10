@@ -6,7 +6,7 @@
 
 ## About
 
-Polygon Editor is a desktop application designed for game developers to create and edit 2D polygon shapes to be used as colliders in their games. Compatible with Linux systems, it's built using the [V](https://vlang.io/) programming language and [V UI](https://github.com/vlang/ui) framework, offering a fast and lightweight tool. This project is open-source and is licensed under the MIT license.
+Polygon Editor is a desktop application designed for game developers to create and edit 2D polygon shapes to be used as colliders in their games. Compatible with Linux systems (only ⚠️), it's built using the [V](https://vlang.io/) programming language and [V UI](https://github.com/vlang/ui) framework, offering a fast and lightweight tool. This project is open-source and is licensed under the MIT license.
 
 ## Key Features
 
@@ -15,6 +15,10 @@ Polygon Editor is a desktop application designed for game developers to create a
 - Point modification: Modify polygons by moving the points around.
 - Point deletion: Remove points from the polygon via right-click.
 - Status indications: Display status messages like "Polygon saved", "Sprite opened", etc.
+
+## Dependencies
+
+- [kdialog](https://github.com/KDE/kdialog)
 
 ## Usage
 
